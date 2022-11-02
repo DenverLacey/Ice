@@ -2,9 +2,11 @@
 # uses this sourceFile as the main entry point of the application.
 
 import std/[parseopt, options]
+import Interpreter
+import Parsing
 
 
-template log(args: varargs[untyped]): untyped =
+template log(args: varargs[untyped, `$`]): untyped =
   when not defined(release):
     echo args
 
@@ -40,6 +42,10 @@ proc main() =
   let source = sourceFile.readAll()
   log("[INFO] Source read:\n", source, '\n')
 
+  log("[CMD] Parsing source...")
+  let tokens = parse(source)
+  log("[INFO] tokens = ", tokens)
+  
 
 when isMainModule:
   main()
