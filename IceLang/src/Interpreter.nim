@@ -12,3 +12,4 @@ func newInterpreter*(): Interpreter =
 proc nextPid*(self: var Interpreter): Pid =
   result = self.currentPid
   inc self.currentPid
+

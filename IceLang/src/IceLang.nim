@@ -1,14 +1,10 @@
 # This is just an example to get you started. A typical binary package
 # uses this sourceFile as the main entry point of the application.
 
-import std/[parseopt, options]
-import Interpreter
-import Parsing
-
-
-template log(args: varargs[untyped, `$`]): untyped =
-  when not defined(release):
-    echo args
+import std/[parseopt, options, strutils]
+import Parser
+import Ast
+import Utils
 
 
 proc getSourceFileName(): Option[string] =
@@ -40,12 +36,16 @@ proc main() =
   defer: close(sourceFile)
   
   let source = sourceFile.readAll()
-  log("[INFO] Source read:\n", source, '\n')
+  log("[INFO] Source read:\n", source, '\n', "-".repeat(25))
 
   log("[CMD] Parsing source...")
-  let tokens = parse(source)
-  log("[INFO] tokens = ", tokens)
+  let nodes = parse(source)
+  log("[INFO] nodes:\n{")
+  for node in nodes:
+    log("  ", node)
+  log("}")
   
 
 when isMainModule:
   main()
+

@@ -1,6 +1,8 @@
 import std/[options, unicode, strutils, strformat, parseutils]
 import sugar
 
+import Utils
+
 
 type
   RuneIterator = object
@@ -8,6 +10,7 @@ type
     s: string
 
   TokenKind* = enum
+    tkSemicolon,
     tkIdent,
     tkInt,
     tkEqual,
@@ -24,26 +27,42 @@ type
     else:
       discard
 
-  Tokenizer = object
+  TokenPrecedence* = enum
+    tpNone,
+    tpAssignment,
+    tpTerm,
+    tpFactor,
+    tpUnary
+
+  Tokenizer* = object
     source: RuneIterator
     peekedTokens: seq[Token]
     previousWasNewline: bool
-  
-  Parser = object
-    tokenizer: Tokenizer
 
 
-func newTokenizer(source: string): Tokenizer =
+func precedence*(kind: TokenKind): TokenPrecedence =
+  case kind:
+  of tkSemicolon: tpNone
+  of tkIdent:     tpNone
+  of tkInt:       tpNone
+  of tkEqual:     tpAssignment
+  of tkPlus:      tpTerm
+  of tkDash:      tpTerm
+  of tkLet:       tpNone
+
+
+func newTokenizer*(source: string): Tokenizer =
   Tokenizer(source: RuneIterator(i: 0, s: source), peekedTokens: @[], previousWasNewline: true)
 
 
-func findLastWhere(r: RuneIterator, predicate: proc(c: Rune): bool): int =
+func findLastWhere(r: RuneIterator, predicate: (Rune) -> bool): int =
   result = r.i
   while result < len(r.s):
     var rune: Rune
+    let previous = result
     fastRuneAt(r.s, result, rune)
     if not predicate(rune):
-      dec result
+      result = previous
       break
 
 
@@ -54,19 +73,19 @@ func peekChar(t: Tokenizer, k: int = 0): Rune {.inline.} =
     result = r
 
 
-proc nextChar(t: var Tokenizer): Option[Rune] {.inline.} =
+func nextChar(t: var Tokenizer): Option[Rune] {.inline.} =
   if t.source.i < len(t.source.s):
     var r: Rune
     fastRuneAt(t.source.s, t.source.i, r)
     result = some(r)
 
 
-proc skipWhitespace(t: var Tokenizer) {.inline.} =
+func skipWhitespace(t: var Tokenizer) {.inline.} =
   while isWhitespace(t.peekChar()):
     discard t.nextChar()
 
 
-proc tokenizeNumber(t: var Tokenizer): Option[Token] =
+func tokenizeNumber(t: var Tokenizer): Option[Token] =
   let startIndex = t.source.i
   let endIndex = t.source.findLastWhere((c) => isDigit(char(c)))
   let slice = t.source.s[startIndex..<endIndex]
@@ -78,7 +97,7 @@ proc tokenizeNumber(t: var Tokenizer): Option[Token] =
   return some(Token(kind: tkInt, intVal: num))
 
 
-proc tokenizeIdentOrKeyword(t: var Tokenizer): Option[Token] =
+func tokenizeIdentOrKeyword(t: var Tokenizer): Option[Token] =
   let startIndex = t.source.i
   let endIndex = t.source.findLastWhere((c) => isAlphaNumeric(char(c)))
   let slice = t.source.s[startIndex..<endIndex]
@@ -94,9 +113,11 @@ proc tokenizeIdentOrKeyword(t: var Tokenizer): Option[Token] =
   return some(token)
 
 
-proc tokenizeOperator(t: var Tokenizer): Option[Token] =
+func tokenizeOperator(t: var Tokenizer): Option[Token] =
   let c = t.nextChar().get
   case c
+  of Rune(';'):
+    result = some(Token(kind: tkSemicolon))
   of Rune('='):
     result = some(Token(kind: tkEqual))
   of Rune('+'):
@@ -107,7 +128,7 @@ proc tokenizeOperator(t: var Tokenizer): Option[Token] =
     raise newException(Exception, fmt"`{c}` is not a valid operator.")
 
 
-proc nextNoPeeking(t: var Tokenizer): Option[Token] =
+func nextNoPeeking(t: var Tokenizer): Option[Token] =
   t.skipWhitespace()
 
   let c = t.peekChar()
@@ -122,21 +143,19 @@ proc nextNoPeeking(t: var Tokenizer): Option[Token] =
     result = t.tokenizeOperator()
 
 
-proc next(t: var Tokenizer): Option[Token] =
+func peek*(t: var Tokenizer, n: Natural = 0): Option[Token] =
+  while t.peekedTokens.len <= n:
+    let token = t.nextNoPeeking().orReturn(none(Token))
+    t.peekedTokens.add(token)
+
+  let token = t.peekedTokens[n]
+  return some(token)
+
+
+func next*(t: var Tokenizer): Option[Token] =
   if len(t.peekedTokens) != 0:
     result = some(t.peekedTokens[0])
     t.peekedTokens.delete(0)
   else:
     result = t.nextNoPeeking()
-
-
-proc parse*(source: string): seq[Token] =
-  var p = Parser(tokenizer: newTokenizer(source))
-
-  while true:
-    let token = p.tokenizer.next()
-    if token.isNone:
-      break
-
-    result.add(token.unsafeGet())
 
