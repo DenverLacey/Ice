@@ -1,6 +1,7 @@
-import std/[options, strformat]
+import std/[options, strformat, strutils]
 
 from Tokenizer import Token
+from Scope import Scope
 
 
 type
@@ -23,6 +24,7 @@ type
   Ast* = ref object
     typ*: Option[Type]
     tok*: Token
+    scope*: Scope
     case kind*: AstKind:
     of astNeg:
       sub*: Ast
@@ -63,4 +65,46 @@ func `$`*(node: Ast): string =
     fmt"(kind: {node.kind}, sub: {node.sub})"
   of astAssignment, astAdd, astSub, astLet:
     fmt"(kind: {node.kind}, lhs: {node.lhs}, rhs: {node.rhs})"  
+
+
+proc print*(node: Ast, indent: Natural = 0)
+const INDENT: Natural = 2
+
+
+proc printField(fieldName: string, field: Ast, indent: Natural) =
+  stdout.write(" ".repeat(INDENT * indent))
+  stdout.write(fieldName)
+  stdout.write(": ")
+  field.print(indent)
+
+
+proc printField[T](fieldName: string, value: T, indent: Natural) =
+  echo(" ".repeat(INDENT * indent), fieldName, ": ", value)
+
+
+proc print*(node: Ast, indent: Natural = 0) =
+  echo(node.kind, ':')
+  printField("typ", node.typ, indent + 1)
+  printField("tok", node.tok, indent + 1)
+
+  case node.kind:
+  # Nullary
+  of
+    astIdent,
+    astInt:
+      discard
+
+  # Unary
+  of
+    astNeg:
+      printField("sub", node.sub, indent + 1)
+  
+  # Binary
+  of 
+    astAssignment,
+    astAdd,
+    astSub,
+    astLet:
+      printField("lhs", node.lhs, indent + 1)
+      printField("rhs", node.rhs, indent + 1)
 

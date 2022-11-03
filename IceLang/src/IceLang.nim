@@ -40,10 +40,9 @@ proc main() =
 
   log("[CMD] Parsing source...")
   let nodes = parse(source)
-  log("[INFO] nodes:\n{")
+  log("[INFO] nodes:")
   for node in nodes:
-    log("  ", node)
-  log("}")
+    node.print()
   
 
 when isMainModule:
