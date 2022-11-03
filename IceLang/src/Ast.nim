@@ -2,11 +2,10 @@ import std/[options, strformat, strutils]
 
 from Tokenizer import Token
 from Scope import Scope
+from Types import Type
 
 
 type
-  Type = Natural # @TODO: use actual `Type` type
-
   AstKind* = enum
     # Nullary
     astIdent,
@@ -93,12 +92,10 @@ proc print*(node: Ast, indent: Natural = 0) =
     astIdent,
     astInt:
       discard
-
   # Unary
   of
     astNeg:
       printField("sub", node.sub, indent + 1)
-  
   # Binary
   of 
     astAssignment,

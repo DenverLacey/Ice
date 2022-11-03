@@ -2,9 +2,12 @@
 # uses this sourceFile as the main entry point of the application.
 
 import std/[parseopt, options, strutils]
+
+import Utils
 import Parser
 import Ast
-import Utils
+import Typechecker
+import Canon
 
 
 proc getSourceFileName(): Option[string] =
@@ -40,6 +43,13 @@ proc main() =
 
   log("[CMD] Parsing source...")
   let nodes = parse(source)
+
+  log("[CMD] Establishing Scopes...")
+  establishScopes(nodes)
+
+  log("[CMD] Typechecking nodes...")
+  typecheck(nodes)
+
   log("[INFO] nodes:")
   for node in nodes:
     node.print()

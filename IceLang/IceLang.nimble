@@ -5,7 +5,8 @@ author        = "DenverLacey"
 description   = "Compiler for the Ice programming language."
 license       = "NONE"
 srcDir        = "src"
-bin           = @["IceLang"]
+bin           = @["icec"]
+binDir        = "../bin/"
 
 
 # Dependencies

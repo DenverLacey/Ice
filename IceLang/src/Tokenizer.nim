@@ -21,7 +21,7 @@ type
   Token* = object
     case kind*: TokenKind
     of tkIdent:
-      ident: string
+      ident*: string
     of tkInt:
       intVal*: int
     else:

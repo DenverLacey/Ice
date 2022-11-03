@@ -50,7 +50,7 @@ func parseBinary(p: var Parser, kind: AstKind, prec: TokenPrecedence, lhs: Ast, 
 func parsePrefix(p: var Parser, token: Token): Ast =
   case token.kind:
   of tkIdent:
-    result = p.parseIdent("Expected an identifier")
+    result = Ast(kind: astIdent, tok: token)
   of tkInt:
     result = newAst(astInt, token)
   of tkDash:
