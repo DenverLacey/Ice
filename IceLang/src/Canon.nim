@@ -1,5 +1,8 @@
+import std/strformat
+
 import Ast
 import Scope
+import Interpreter
 
 
 type
@@ -42,9 +45,13 @@ func establishScopes(ctx: var Context, node: Ast) =
       ctx.establishScopes(node.rhs)
 
 
-func establishScopes*(nodes: seq[Ast]) =
+func establishScopes*(interp: var Interpreter, nodes: seq[Ast]) =
   var ctx = Context()
   ctx.beginScope()
+
+  let id = interp.nextPid()
+  doAssert(id == 0, fmt"[ERR] Global function Pid is not 0 but {id}")
+  if not interp.addFunction(Function(id: id)): raise newException(Exception, "Failed to add global function to function registry.")
 
   for node in nodes:
     ctx.establishScopes(node)

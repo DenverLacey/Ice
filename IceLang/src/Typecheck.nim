@@ -1,5 +1,6 @@
 import std/[options, strformat]
 
+import Interpreter
 import Ast
 import Scope
 import Types
@@ -15,13 +16,7 @@ func typecheck(node: Ast) =
   case node.kind:
   # Nullary
   of astIdent:
-    var ident: string
-    case node.tok.kind:
-    of tkIdent:
-      ident = node.tok.ident
-    else:
-      raise newException(Exception, "[ERR] node with kind `astIdent` doesn't have an ident token.")
-
+    var ident = node.tok.ident
     let binding = node.scope.findBinding(ident).orRaise(TypeError, fmt"Undeclared identifier `{ident}`.")
     node.typ = some(binding.typ)
 
@@ -52,17 +47,7 @@ func typecheck(node: Ast) =
     node.typ = node.lhs.typ
 
   of astLet:
-    var ident: string 
-    case node.lhs.kind:
-    of astIdent:
-      case node.lhs.tok.kind:
-      of tkIdent:
-        ident = node.lhs.tok.ident
-      else:
-        raise newException(Exception, "[ERR] lhs of let node not an ident.")
-    else:
-      raise newException(Exception, "[ERR] lhs of let node not an ident.")
-
+    var ident = node.lhs.tok.ident
     typecheck(node.rhs)
 
     let varType = node.rhs.typ.orRaise(TypeError, "Initializer of let statement must have a type.")
@@ -70,7 +55,7 @@ func typecheck(node: Ast) =
       raise newException(TypeError, fmt"Redeclaration of `{ident}`")
 
 
-func typecheck*(nodes: seq[Ast]) =
+func typecheck*(interp: var Interpreter, nodes: seq[Ast]) =
   for node in nodes:
     typecheck(node)
 

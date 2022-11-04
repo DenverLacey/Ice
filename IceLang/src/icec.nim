@@ -4,10 +4,12 @@
 import std/[parseopt, options, strutils]
 
 import Utils
+import Interpreter
 import Parser
 import Ast
-import Typechecker
+import Typecheck
 import Canon
+import Codegen
 
 
 proc getSourceFileName(): Option[string] =
@@ -44,15 +46,20 @@ proc main() =
   log("[CMD] Parsing source...")
   let nodes = parse(source)
 
+  var interp = newInterpreter()
+
   log("[CMD] Establishing Scopes...")
-  establishScopes(nodes)
+  establishScopes(interp, nodes)
 
   log("[CMD] Typechecking nodes...")
-  typecheck(nodes)
+  typecheck(interp, nodes)
 
   log("[INFO] nodes:")
   for node in nodes:
     node.print()
+
+  log("[CMD] Compiling node...")
+  compile(interp, nodes)
   
 
 when isMainModule:

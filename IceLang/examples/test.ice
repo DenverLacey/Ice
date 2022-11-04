@@ -1,3 +1,1 @@
-let x = -1 + 2;
-let y = x + 1;
-let z = x + y;
+let x = -1 + 1;

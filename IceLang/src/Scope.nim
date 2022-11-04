@@ -1,4 +1,6 @@
 import std/[tables, options]
+
+import Utils
 from Interpreter import Pid
 from Types import Type
 
@@ -12,9 +14,9 @@ type
     typ*: Type
     case kind*: BindingKind:
     of bkVar:
-      discard
+      stackPosition*: Natural
     of bkProc:
-      id: Pid
+      id*: Pid
 
   Scope* = ref object
     parent*: Scope
@@ -31,13 +33,18 @@ func addBinding*(s: Scope, name: string, binding: Binding): bool =
   return true
 
 
-func findBinding*(s: Scope, name: string): Option[Binding] =
+func findBindingPtr*(s: Scope, name: string): Option[ptr Binding] =
   var it = s
   while it != nil:
     if name in it.bindings:
-      return some(it.bindings[name])
+      return some(addr it.bindings[name])
 
     it = it.parent
 
-  return none(Binding)
+  return none(ptr Binding)
+
+
+func findBinding*(s: Scope, name: string): Option[Binding] =
+  let bindingPtr = s.findBindingPtr(name).orReturn(none(Binding))
+  return some(bindingPtr[])
 
