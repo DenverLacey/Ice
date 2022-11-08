@@ -55,6 +55,10 @@ func newTokenizer*(source: string): Tokenizer =
   Tokenizer(source: RuneIterator(i: 0, s: source), peekedTokens: @[], previousWasNewline: true)
 
 
+func toChar(rune: Rune): char =
+  char(rune)
+
+
 func firstWhereNot(r: RuneIterator, predicate: (Rune) -> bool): int =
   result = r.i
   while result < len(r.s):
@@ -68,7 +72,7 @@ func firstWhereNot(r: RuneIterator, predicate: (Rune) -> bool): int =
 
 func takeWhile(r: var RuneIterator, predicate: (Rune) -> bool): string =
   let startIndex = r.i
-  let endIndex = r.firstWhereNot((c) => isDigit(char(c)))
+  let endIndex = r.firstWhereNot(predicate)
   let slice = r.s[startIndex..<endIndex]
   r.i = endIndex
   return slice
@@ -94,16 +98,15 @@ func skipWhitespace(t: var Tokenizer) {.inline.} =
 
 
 func tokenizeNumber(t: var Tokenizer): Option[Token] =
-  let slice = t.source.takeWhile((c) => isDigit(char(c)))
-
-  var num: int
-  discard parseInt(slice, num)
+  let 
+    slice = t.source.takeWhile(isDigit <. toChar)
+    num = slice.parseInt()
 
   return some(Token(kind: tkInt, intVal: num))
 
 
 func tokenizeIdentOrKeyword(t: var Tokenizer): Token =
-  let slice = t.source.takeWhile((c) => isAlphaNumeric(char(c)))
+  let slice = t.source.takeWhile(isAlphaNumeric <. toChar)
 
   let token = 
     case slice

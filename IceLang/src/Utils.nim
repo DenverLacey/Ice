@@ -32,3 +32,7 @@ template dbg*(x: untyped): untyped =
   log("[DBG] ", xResult)
   xResult
 
+
+func `<.`*[T, U, R](f: proc(x: U): R, g: proc(x: T): U): proc(x: T): R =
+  return (proc(x: T): R = f(g(x)))
+
