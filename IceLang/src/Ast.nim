@@ -1,6 +1,6 @@
 import std/[options, strformat, strutils]
 
-from Tokenizer import Token
+from Tokenize import Token
 from Scope import Scope
 from Types import Type
 

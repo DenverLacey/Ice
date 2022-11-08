@@ -5,7 +5,7 @@ import Ast
 import Scope
 import Types
 import Utils
-from Tokenizer import TokenKind
+from Tokenize import TokenKind
 
 
 type

@@ -6,12 +6,12 @@ type
   Addr* = uint16
 
   Bytecode* {.size: sizeof(byte).} = enum
-    bcNone,
-    bcPush0,
-    bcPush1,
-    bcNeg,
-    bcAdd,
-    bcSub
+    bcNone  = 0,
+    bcPush0 = 1,
+    bcPush1 = 2,
+    bcNeg   = 3,
+    bcAdd   = 4,
+    bcSub   = 5
 
   Function* = object
     id*: Pid
@@ -45,4 +45,9 @@ func getFunction*(self: var Interpreter, id: Pid): Option[ptr Function] =
   # get further modified it is safe to take pointers into the table.
   #
   return some(addr self.functions[id])
+
+
+iterator functions*(self: var Interpreter): Function =
+  for fn in self.functions.values:
+    yield fn
 

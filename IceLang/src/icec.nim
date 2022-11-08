@@ -5,10 +5,11 @@ import std/[parseopt, options, strutils]
 
 import Utils
 import Interpreter
-import Parser
+import Parse
 import Ast
 import Typecheck
 import Canon
+import Compile
 import Codegen
 
 
@@ -58,8 +59,12 @@ proc main() =
   for node in nodes:
     node.print()
 
-  log("[CMD] Compiling node...")
+  log("[CMD] Compiling nodes...")
   compile(interp, nodes)
+
+  log("[CMD] Generating Berg File...")
+  var bergFile = open("../output/test.berg", fmWrite)
+  outputBergFile(interp, bergFile)
   
 
 when isMainModule:

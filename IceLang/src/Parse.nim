@@ -1,7 +1,7 @@
 import std/[options, strformat]
 
 import Utils
-import Tokenizer
+import Tokenize
 import Ast
 
 
