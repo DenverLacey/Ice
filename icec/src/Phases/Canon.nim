@@ -1,8 +1,7 @@
 import std/strformat
 
-import Ast
-import Scope
-import Interpreter
+import ../structures/[Ast, Scope, Types]
+import ../Interpreter
 
 
 type

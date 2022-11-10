@@ -1,10 +1,8 @@
 import std/[options, strformat]
 
-import Interpreter
-import Ast
-import Scope
-import Types
-import Utils
+import ../Interpreter
+import ../Utils
+import ../structures/[Ast, Scope, Types]
 from Tokenize import TokenKind
 
 

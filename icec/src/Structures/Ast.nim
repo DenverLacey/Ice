@@ -1,8 +1,8 @@
 import std/[options, strformat, strutils]
 
-from Tokenize import Token
-from Scope import Scope
-from Types import Type
+from ../phases/Tokenize import Token
+import Scope
+import Types
 
 
 type
@@ -21,7 +21,7 @@ type
     astLet
 
   Ast* = ref object
-    typ*: Option[Type]
+    typ*: Option[Type.Type]
     tok*: Token
     scope*: Scope
     case kind*: AstKind:

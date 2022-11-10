@@ -5,12 +5,8 @@ import std/[parseopt, options, strutils]
 
 import Utils
 import Interpreter
-import Parse
-import Ast
-import Typecheck
-import Canon
-import Compile
-import Codegen
+import phases/[Parse, Canon, Typecheck, Compile, Codegen]
+import structures/Ast
 
 
 proc getSourceFileName(): Option[string] =

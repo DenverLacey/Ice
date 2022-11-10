@@ -1,8 +1,9 @@
 import std/[strformat, strutils, options, bitops]
 import parsecfg
 
-import Interpreter
-import Utils
+import ../Interpreter
+import ../Utils
+import ../structures/Types
 
 
 type

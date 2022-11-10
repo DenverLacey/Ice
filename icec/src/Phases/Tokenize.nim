@@ -1,7 +1,7 @@
-import std/[options, unicode, strutils, strformat, parseutils]
+import std/[options, unicode, strutils, strformat]
 import sugar
 
-import Utils
+import ../Utils
 
 
 type
@@ -61,7 +61,7 @@ func toChar(rune: Rune): char =
 
 func firstWhereNot(r: RuneIterator, predicate: (Rune) -> bool): int =
   result = r.i
-  while result < len(r.s):
+  while result < r.s.len:
     var rune: Rune
     let previous = result
     fastRuneAt(r.s, result, rune)
@@ -78,23 +78,23 @@ func takeWhile(r: var RuneIterator, predicate: (Rune) -> bool): string =
   return slice
 
 
-func peekChar(t: Tokenizer, k: int = 0): Rune {.inline.} =
-  if t.source.i < len(t.source.s):
+func peekRune(t: Tokenizer, k: int = 0): Rune {.inline.} =
+  if t.source.i < t.source.s.len:
     var r: Rune
     fastRuneAt(t.source.s, t.source.i, r, doInc=false)
     result = r
 
 
-func nextChar(t: var Tokenizer): Option[Rune] {.inline.} =
-  if t.source.i < len(t.source.s):
+func nextRune(t: var Tokenizer): Option[Rune] {.inline.} =
+  if t.source.i < t.source.s.len:
     var r: Rune
     fastRuneAt(t.source.s, t.source.i, r)
     result = some(r)
 
 
 func skipWhitespace(t: var Tokenizer) {.inline.} =
-  while isWhitespace(t.peekChar()):
-    discard t.nextChar()
+  while t.peekRune().isWhitespace():
+    discard t.nextRune()
 
 
 func tokenizeNumber(t: var Tokenizer): Option[Token] =
@@ -119,8 +119,8 @@ func tokenizeIdentOrKeyword(t: var Tokenizer): Token =
 
 
 func tokenizeOperator(t: var Tokenizer): Token =
-  let c = t.nextChar().get
-  case c
+  let r = t.nextRune().get()
+  case r
   of Rune(';'):
     result = Token(kind: tkSemicolon)
   of Rune('='):
@@ -130,19 +130,19 @@ func tokenizeOperator(t: var Tokenizer): Token =
   of Rune('-'):
     result = Token(kind: tkDash)
   else:
-    raise newException(Exception, fmt"`{c}` is not a valid operator.")
+    raise newException(Exception, fmt"`{r}` is not a valid operator.")
 
 
 func nextNoPeeking(t: var Tokenizer): Option[Token] =
   t.skipWhitespace()
 
-  let c = t.peekChar()
-  case c
+  let r = t.peekRune()
+  case r
   of Rune('\0'): 
     return
-  elif isDigit(char(c)):
+  elif r.toChar().isDigit():
     result = t.tokenizeNumber()
-  elif isAlpha(c):
+  elif r.isAlpha():
     result = some(t.tokenizeIdentOrKeyword())
   else:
     result = some(t.tokenizeOperator())
@@ -158,7 +158,7 @@ func peek*(t: var Tokenizer, n: Natural = 0): Option[Token] =
 
 
 func next*(t: var Tokenizer): Option[Token] =
-  if len(t.peekedTokens) != 0:
+  if t.peekedTokens.len != 0:
     result = some(t.peekedTokens[0])
     t.peekedTokens.delete(0)
   else:

@@ -1,8 +1,8 @@
 import std/[options, strformat]
 
-import Utils
+import ../Utils
 import Tokenize
-import Ast
+import ../structures/Ast
 
 
 type

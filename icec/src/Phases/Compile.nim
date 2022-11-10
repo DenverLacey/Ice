@@ -1,10 +1,8 @@
-import std/[options, enumerate]
+import std/[options, bitops]
 
-import Ast
-import Interpreter
-import Utils
-import Scope
-import Types
+import ../structures/[Ast, Scope, Types]
+import ../Interpreter
+import ../Utils
 from Tokenize import TokenKind
 
 type
@@ -23,13 +21,30 @@ func emit(c: var Compiler, bytecode: Bytecode) =
   c.function.code.add(bytecode)
 
 
-func emitInt(c: var Compiler, value: int) =
+func emitByte(c: var Compiler, byt: byte) =
+  static: assert(sizeof(Bytecode) == sizeof(byte))
+  c.function.code.add(byt.Bytecode)
+
+
+func emitInt[T: SomeInteger](c: var Compiler, i: T) =
+  var k = (sizeof(T) * 8) - 8
+  while k >= 0:
+    let 
+      mask = 0xFF.T shl k
+      byt = byte(bitand(i, mask) shr k)
+    
+    c.emitByte(byt)
+    k -= 8
+
+
+func compileInt(c: var Compiler, value: int) =
   if value == 0:
     c.emit(bcPush0)
   elif value == 1:
     c.emit(bcPush1)
   else:
-    doAssert(false, "TODO: Implement arbitrary integer literals.")
+    c.emit(bcPushInt)
+    c.emitInt(value)
   
   c.stackTop += INT_TYPE.size()
 
@@ -58,7 +73,7 @@ func compile(c: var Compiler, node: Ast) =
   of astIdent:
     assert(false, "TODO: Implement compilation of ident nodes.")
   of astInt:
-    c.emitInt(node.tok.intVal)
+    c.compileInt(node.tok.intVal)
   
   # Unary
   of astNeg:
@@ -87,6 +102,5 @@ proc compile*(interp: var Interpreter, nodes: seq[Ast]) =
     c.compile(node)
 
   log("[INFO] Bytecode:")
-  for i, code in enumerate(c.function.code):
-    echo(i, ": ", code, " (", code.byte, ')')
+  c.function.code.printBytecode()
 

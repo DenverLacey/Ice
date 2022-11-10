@@ -1,8 +1,7 @@
 import std/[tables, options]
 
-import Utils
-from Interpreter import Pid
-from Types import Type
+import ../Utils
+from Types import Pid, Type
 
 
 type

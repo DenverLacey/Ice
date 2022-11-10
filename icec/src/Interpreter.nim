@@ -1,22 +1,8 @@
-import std/[options, tables]
+import std/[options, tables, strformat]
+
+import structures/Types
 
 type
-  Pid* = uint64
-  Size* = uint32
-  Addr* = uint16
-
-  Bytecode* {.size: sizeof(byte).} = enum
-    bcNone  = 0,
-    bcPush0 = 1,
-    bcPush1 = 2,
-    bcNeg   = 3,
-    bcAdd   = 4,
-    bcSub   = 5
-
-  Function* = object
-    id*: Pid
-    code*: seq[Bytecode]
-
   Interpreter* = object
     currentPid: Pid
     functions: Table[Pid, Function]
@@ -50,4 +36,35 @@ func getFunction*(self: var Interpreter, id: Pid): Option[ptr Function] =
 iterator functions*(self: var Interpreter): Function =
   for fn in self.functions.values:
     yield fn
+
+
+proc printBytecode*(code: openArray[Bytecode]) =
+  template read[T](): T =
+    let codeArray = cast[ptr UncheckedArray[Bytecode]](code)
+    let tp = cast[ptr T](addr codeArray[i])
+    i += sizeof(T)
+    tp[]
+
+  var i = 0
+  while i < code.len:
+    let i0 = i
+    let op = read[Bytecode]
+    case op
+    of bcNone:
+      echo fmt"{i0:04X}: None"
+    of bcPush0:
+      echo fmt"{i0:04X}: Push0"
+    of bcPush1:
+      echo fmt"{i0:04X}: Push1"
+    of bcPushInt:
+      let n = read[int]
+      echo fmt"{i0:04X}: PushInt `{n}`"
+    of bcNeg:
+      echo fmt"{i0:04X}: Neg"
+    of bcAdd:
+      echo fmt"{i0:04X}: Add"
+    of bcSub:
+      echo fmt"{i0:04X}: Sub"
+    else:
+      raise newException(Exception, fmt"Invalid bytecode operation `{op}`")
 
