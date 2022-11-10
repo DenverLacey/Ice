@@ -70,8 +70,8 @@ proc writeInteger[T: SomeInteger](f: var File, value: T) =
 
 
 proc getCompilerVersion(): Option[Version] =
-  let config = loadConfig("./IceLang.nimble")
-  assert(config != nil, "Failed to load config file of ice compiler `./IceLang.nimble`")
+  let config = loadConfig("./icec.nimble")
+  assert(config != nil, "Failed to load config file of ice compiler `./icec.nimble`")
 
   let 
     sectionValue = config.getSectionValue("", "version")

@@ -48,8 +48,8 @@ func establishScopes*(interp: var Interpreter, nodes: seq[Ast]) =
   var ctx = Context()
   ctx.beginScope()
 
-  let id = interp.nextPid()
-  doAssert(id == 0, fmt"[ERR] Global function Pid is not 0 but {id}")
+  let id = interp.nextPid(pdFunc)
+  doAssert(id == newPid(pdFunc, 0), fmt"[ERR] Global function Pid is not 0 but {id}")
   if not interp.addFunction(Function(id: id)): raise newException(Exception, "Failed to add global function to function registry.")
 
   for node in nodes:

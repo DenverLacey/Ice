@@ -1,20 +1,25 @@
-import std/[options, tables, strformat]
+import std/[options, tables]
 
 import structures/Types
 
 type
   Interpreter* = object
-    currentPid: Pid
+    pids: Table[PidDomain, PidValue]
     functions: Table[Pid, Function]
 
 
 func newInterpreter*(): Interpreter =
-  Interpreter(currentPid: 0)
+  let pids = {
+    pdFunc: 0.PidValue
+  }.toTable
+
+  Interpreter(pids: pids)
 
 
-func nextPid*(self: var Interpreter): Pid =
-  result = self.currentPid
-  inc self.currentPid
+func nextPid*(self: var Interpreter, domain: PidDomain): Pid =
+  var current = addr self.pids[domain]
+  result = newPid(domain, current[])
+  current[] += 1
 
 
 func addFunction*(self: var Interpreter, fn: Function): bool =
@@ -33,38 +38,12 @@ func getFunction*(self: var Interpreter, id: Pid): Option[ptr Function] =
   return some(addr self.functions[id])
 
 
+func getFunction*(self: var Interpreter, value: PidValue): Option[ptr Function] =
+  let pid = newPid(pdFunc, value)
+  self.getFunction(pid)
+
+
 iterator functions*(self: var Interpreter): Function =
   for fn in self.functions.values:
     yield fn
-
-
-proc printBytecode*(code: openArray[Bytecode]) =
-  template read[T](): T =
-    let codeArray = cast[ptr UncheckedArray[Bytecode]](code)
-    let tp = cast[ptr T](addr codeArray[i])
-    i += sizeof(T)
-    tp[]
-
-  var i = 0
-  while i < code.len:
-    let i0 = i
-    let op = read[Bytecode]
-    case op
-    of bcNone:
-      echo fmt"{i0:04X}: None"
-    of bcPush0:
-      echo fmt"{i0:04X}: Push0"
-    of bcPush1:
-      echo fmt"{i0:04X}: Push1"
-    of bcPushInt:
-      let n = read[int]
-      echo fmt"{i0:04X}: PushInt `{n}`"
-    of bcNeg:
-      echo fmt"{i0:04X}: Neg"
-    of bcAdd:
-      echo fmt"{i0:04X}: Add"
-    of bcSub:
-      echo fmt"{i0:04X}: Sub"
-    else:
-      raise newException(Exception, fmt"Invalid bytecode operation `{op}`")
 
