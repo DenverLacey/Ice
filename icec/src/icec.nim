@@ -1,6 +1,3 @@
-# This is just an example to get you started. A typical binary package
-# uses this sourceFile as the main entry point of the application.
-
 import std/[parseopt, options, strutils]
 
 import Utils
